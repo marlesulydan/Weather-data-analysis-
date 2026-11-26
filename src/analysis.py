@@ -153,6 +153,18 @@ def astana_vs_europe(df):
     comparison["Astana minus Europe"] = comparison["Astana"] - comparison["European mean"]
     return comparison
 
+def monthly_temperature(df):
+    """Mean daily temperature per city and calendar month (long format for plotting)."""
+    return df.groupby(["city", "month"])["temperature_2m_mean"].mean().reset_index()
+
+
+def monthly_precipitation(df):
+    """Average monthly precipitation total (mm) per city and calendar month."""
+    monthly_totals = df.groupby(["city", "year", "month"])["precipitation_sum"].sum()
+    return (
+        monthly_totals.groupby(["city", "month"]).mean()
+        .reset_index(name="avg_monthly_precip_mm")
+    )
 
 def main():
     df = load_clean_data()
