@@ -3,7 +3,7 @@
 Every function takes the cleaned DataFrame and returns a table (no printing or
 plotting here). Run from the project root with:  python src/analysis.py
 """
-
+import numpy as np
 import pandas as pd
 
 from data_cleaning import CITIES, PROCESSED_DIR
@@ -165,6 +165,29 @@ def monthly_precipitation(df):
         monthly_totals.groupby(["city", "month"]).mean()
         .reset_index(name="avg_monthly_precip_mm")
     )
+
+def numpy_descriptive_statistics(df, column="temperature_2m_mean"):
+    """Mean, median, min, max and sample standard deviation per city, with NumPy."""
+    rows = {}
+    for city, group in df.groupby("city"):
+        values = group[column].to_numpy()
+        rows[city] = {
+            "mean": np.mean(values),
+            "median": np.median(values),
+            "min": np.min(values),
+            "max": np.max(values),
+            "std": np.std(values, ddof=1),  # ddof=1: sample standard deviation, as in Pandas
+        }
+    return pd.DataFrame(rows).T.loc[CITY_ORDER]
+
+
+def numpy_correlation(df, x="temperature_2m_mean", y="precipitation_sum"):
+    """Pearson correlation per city computed with np.corrcoef."""
+    return pd.Series({
+        city: np.corrcoef(group[x].to_numpy(), group[y].to_numpy())[0, 1]
+        for city, group in df.groupby("city")
+    }).loc[CITY_ORDER]
+
 
 def main():
     df = load_clean_data()
